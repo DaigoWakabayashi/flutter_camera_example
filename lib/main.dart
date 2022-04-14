@@ -11,65 +11,77 @@ Future<void> main() async {
   // 利用可能なカメラのリストから特定のカメラを取得
   final firstCamera = cameras.first;
 
-  print(firstCamera);
-  runApp(const MyApp());
+  runApp(MyApp(camera: firstCamera));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({
+    Key? key,
+    required this.camera,
+  }) : super(key: key);
+
+  final CameraDescription camera;
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Camera Example',
       theme: ThemeData(),
-      home: const MyHomePage(title: 'Flutter Camera Example'),
+      home: TakePictureScreen(camera: camera),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
+class TakePictureScreen extends StatefulWidget {
+  const TakePictureScreen({
+    Key? key,
+    required this.camera,
+  }) : super(key: key);
 
-  final String title;
+  final CameraDescription camera;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  TakePictureScreenState createState() => TakePictureScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class TakePictureScreenState extends State<TakePictureScreen> {
+  late CameraController _controller;
+  late Future<void> _initializeControllerFuture;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = CameraController(
+      // カメラを指定
+      widget.camera,
+      // 解像度を定義
+      ResolutionPreset.medium,
+    );
+
+    // コントローラーを初期化
+    _initializeControllerFuture = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    // ウィジェットが破棄されたら、コントローラーを破棄
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+    // FutureBuilder で初期化を待ってからプレビューを表示（それまではインジケータを表示）
+    return FutureBuilder<void>(
+      future: _initializeControllerFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return CameraPreview(_controller);
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
     );
   }
 }
