@@ -43,5 +43,9 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>カメラを使う理由・用途を記述（ここをちゃんと書かないと、Appleのレビューでリジェクトされます）</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>マイクを使う理由・用途を記述（ここをちゃんと書かないと、Appleのレビューでリジェクトされます）</string>
 </dict>
 </plist>
